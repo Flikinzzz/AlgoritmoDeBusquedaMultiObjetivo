@@ -25,7 +25,7 @@ BOA* requiere optimizar la inserción y extracción de nodos con la clave más b
 *Optimización del Espacio y la Memoria:
 El código utiliza un enfoque de reciclaje de nodos podados para liberar memoria de manera eficiente y permite ajustar parámetros de capacidad máxima como MAX_SOLUTIONS y MAX_RECYCLE para gestionar grandes conjuntos de datos.*
 
-# Conclusión
+# Conclusion de Multiobjective_heuristic_search_in_road
 
 *El artículo demuestra la importancia de usar heurísticas para resolver problemas de rutas multiobjetivo en mapas de carreteras de manera eficiente.  Si bien existen varias opciones, la heurística TC con cálculo acotado se destaca como la más efectiva.*
 
