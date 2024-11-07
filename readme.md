@@ -25,7 +25,7 @@ BOA* requiere optimizar la inserción y extracción de nodos con la clave más b
 *Optimización del Espacio y la Memoria:
 El código utiliza un enfoque de reciclaje de nodos podados para liberar memoria de manera eficiente y permite ajustar parámetros de capacidad máxima como MAX_SOLUTIONS y MAX_RECYCLE para gestionar grandes conjuntos de datos.*
 
-# Conclusion de Multiobjective_heuristic_search_in_road
+# Conclusion del pdf Multiobjective_heuristic_search_in_road
 
 *El artículo demuestra la importancia de usar heurísticas para resolver problemas de rutas multiobjetivo en mapas de carreteras de manera eficiente.  Si bien existen varias opciones, la heurística TC con cálculo acotado se destaca como la más efectiva.*
 
@@ -35,6 +35,6 @@ El código utiliza un enfoque de reciclaje de nodos podados para liberar memoria
 Eficiencia: Aunque requiere un cálculo inicial (precalcular valores heurísticos), este esfuerzo se ve compensado por la rapidez con la que encuentra la ruta óptima, ahorrando tiempo en la búsqueda general.
 Adaptabilidad: El cálculo acotado permite que la heurística se adapte a la dificultad del problema. En problemas simples, donde los puntos de origen y destino están cerca, se precalculan menos valores, ahorrando tiempo. En problemas complejos con puntos de origen y destino lejanos, se precalculan más valores para asegurar la eficiencia.*
 
-# Conlusion de ai-HernandezYBZSKS23
+# Conlusion del pdf ai-HernandezYBZSKS23
 
 *En este artículo, se presentaron algoritmos para dos tipos de problemas de búsqueda biobjetivos. Se consideró primero el problema de calcular la frontera Pareto-óptima de las rutas que conectan un estado inicial dado con un estado objetivo dado. Se propuso Biobjetivo A* (BOA*), *un algoritmo de búsqueda heurística basado en A*, *para este problema.* *En segundo lugar, se consideró el problema de calcular una frontera Pareto-óptima para cada estado s del grafo de búsqueda,que contiene los caminos que conectan un estado inicialdado* *con s. Se propuso Biobjetivo Dijkstra (BOD), que se basa en BOA*, *para este problema. Una característica común de BOA* *y BOD es que todas las comprobaciones de dominancia se realizan en tiempo constante, a diferencia de las comprobaciones de dominancia de los algoritmos anteriores. La evaluación experimental mostró que tanto BOA como BOD son sustancialmente más rápidos que los algoritmos de búsqueda biobjetivos de última generación.*
