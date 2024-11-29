@@ -1,1 +1,0 @@
-CMakeLists.txt not found in /home/hector/Documentos/Clion/AlgoritmoDeBusquedaMultiObjetivo Select CMakeLists.txt

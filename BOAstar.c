@@ -1,3 +1,7 @@
+/////////////////////////////////////////////////////////////////////
+// Carlos Hernandez
+// All rights reserved
+/////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -494,14 +498,67 @@ void call_boastar() {
         stat_percolations);
 }
 
+void execute_with_stops(const int stops[], int num_stops) {
+    unsigned long long total_expansions = 0, total_generated = 0;
+    float total_runtime = 0;
+    unsigned total_solutions = 0;
+
+    struct timeval tstart, tend;
+    int i;
+
+    for (i = 0; i < num_stops - 1; i++) {
+        start = stops[i];      // Nodo inicial del segmento
+        goal = stops[i + 1];   // Nodo final del segmento
+        printf("Processing segment: %d -> %d\n", start, goal);
+
+        start_state = &graph_node[start];
+        goal_state = &graph_node[goal];
+
+        gettimeofday(&tstart, NULL);
+
+        // Inicializar parámetros y ejecutar BOA* para este segmento
+        initialize_parameters();
+        if (backward_dijkstra(1) && backward_dijkstra(2)) {
+            boastar();
+        }
+
+        gettimeofday(&tend, NULL);
+
+        // Calcular tiempo de ejecución para este segmento
+        float runtime = 1.0 * (tend.tv_sec - tstart.tv_sec) +
+                        1.0 * (tend.tv_usec - tstart.tv_usec) / 1000000.0;
+
+        // Acumular métricas globales
+        total_runtime += runtime;
+        total_expansions += stat_expansions;
+        total_generated += stat_generated;
+        total_solutions += nsolutions;
+
+        // Mostrar resultados del segmento
+        printf("Segment results: Runtime %.2f ms, Solutions %d, Expansions %llu, Generated %llu\n",
+               runtime * 1000, nsolutions, stat_expansions, stat_generated);
+    }
+
+    // Mostrar resultados consolidados
+    printf("Total Results:\n");
+    printf("Runtime: %.2f ms\n", total_runtime * 1000);
+    printf("Total Expansions: %llu\n", total_expansions);
+    printf("Total Generated: %llu\n", total_generated);
+    printf("Total Solutions: %u\n", total_solutions);
+}
+
 /*----------------------------------------------------------------------------------*/
 int main() {
-	start = 180833;
-	goal = 83149;
-	
-	read_adjacent_table("NY-road-d.txt");
-	new_graph();
+    const int stops[] = {180833, 12345, 67890, 111213, 141516, 83149};  // Lista de paradas
+    int num_stops = sizeof(stops) / sizeof(stops[0]);
 
-	call_boastar();
+    // Leer el grafo desde el archivo (se mantiene sin cambios)
+    read_adjacent_table("NY-road-d.txt");
+    new_graph();
+
+    // Ejecutar BOA* para cada segmento entre paradas
+    execute_with_stops(stops, num_stops);
+
+    return 0;
 }
 
