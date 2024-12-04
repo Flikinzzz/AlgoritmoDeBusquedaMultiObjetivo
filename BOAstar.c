@@ -5,8 +5,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <time.h>
+#include <sys/time.h> // Added to define struct timeval
+// #include <unistd.h> // Removed as it is not necessary for this code
 
 #define MAXNODES 4000000
 #define MAXNEIGH 45
@@ -38,10 +39,15 @@ typedef struct snode snode;
 
 struct snode // BOA*'s search nodes
 {
+  int cost; // Costo acumulado
+  int stops; // NÃºmero de paradas
+  struct snode* prev; // Nodo anterior en la ruta
+  // Otros campos necesarios
   int state;
   unsigned g1;
   unsigned g2;
   double key;
+
   unsigned long heapindex;
   snode *searchtree;
 };
@@ -516,7 +522,7 @@ void execute_with_stops(const int stops[], int num_stops) {
 
         gettimeofday(&tstart, NULL);
 
-        // Inicializar parámetros y ejecutar BOA* para este segmento
+        // Inicializar parï¿½metros y ejecutar BOA* para este segmento
         initialize_parameters();
         if (backward_dijkstra(1) && backward_dijkstra(2)) {
             boastar();
@@ -524,11 +530,11 @@ void execute_with_stops(const int stops[], int num_stops) {
 
         gettimeofday(&tend, NULL);
 
-        // Calcular tiempo de ejecución para este segmento
+        // Calcular tiempo de ejecuciï¿½n para este segmento
         float runtime = 1.0 * (tend.tv_sec - tstart.tv_sec) +
                         1.0 * (tend.tv_usec - tstart.tv_usec) / 1000000.0;
 
-        // Acumular métricas globales
+        // Acumular mï¿½tricas globales
         total_runtime += runtime;
         total_expansions += stat_expansions;
         total_generated += stat_generated;
@@ -548,6 +554,37 @@ void execute_with_stops(const int stops[], int num_stops) {
 }
 
 /*----------------------------------------------------------------------------------*/
+void pareto_search(snode* start, snode* goal) {
+  emptyheap();
+  start->cost = 0;
+  start->stops = 0;
+  start->prev = NULL;
+  insertheap(start);
+
+  while (heapsize > 0) {
+    snode* current = popheap();
+    if (current == goal) {
+      // Ruta encontrada
+      return;
+    }
+
+    // Explorar vecinos
+    for (int d = 1; d < adjacent_table[current->state][0] * 3; d += 3) {
+      snode* neighbor = new_node();
+      neighbor->state = adjacent_table[current->state][d];
+      int new_cost = current->cost + adjacent_table[current->state][d + 1];
+      int new_stops = current->stops + 1;
+
+      if (new_cost < neighbor->cost || new_stops < neighbor->stops) {
+        neighbor->cost = new_cost;
+        neighbor->stops = new_stops;
+        neighbor->prev = current;
+        insertheap(neighbor);
+      }
+    }
+  }
+}
+
 int main() {
     const int stops[] = {180833, 12345, 67890, 111213, 141516, 83149};  // Lista de paradas
     int num_stops = sizeof(stops) / sizeof(stops[0]);
@@ -561,4 +598,3 @@ int main() {
 
     return 0;
 }
-
