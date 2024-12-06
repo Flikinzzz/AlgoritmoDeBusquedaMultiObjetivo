@@ -1,8 +1,13 @@
+/////////////////////////////////////////////////////////////////////
+// Carlos Hernandez
+// All rights reserved
+/////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <time.h>
+#include <sys/time.h> // Added to define struct timeval
+// #include <unistd.h> // Removed as it is not necessary for this code
 
 #define MAXNODES 4000000
 #define MAXNEIGH 45
@@ -14,6 +19,8 @@
 
 #define max(x,y) ( (x) > (y) ? (x) : (y) )
 #define min(x,y) ( (x) < (y) ? (x) : (y) )
+
+#define MAX_QUERIES 100  // Define un tamaño máximo para las consultas
 
 //********************************************** Main data structures ******************************************************
 struct gnode;
@@ -34,10 +41,15 @@ typedef struct snode snode;
 
 struct snode // BOA*'s search nodes
 {
+  int cost; // Costo acumulado
+  int stops; // Número de paradas
+  struct snode* prev; // Nodo anterior en la ruta
+  // Otros campos necesarios
   int state;
   unsigned g1;
   unsigned g2;
   double key;
+
   unsigned long heapindex;
   snode *searchtree;
 };
@@ -455,53 +467,96 @@ int boastar() {
 
    // return nsolutions > 0;
 }
-
 /* ------------------------------------------------------------------------------*/
-void call_boastar() {
-    float runtime;
+void call_boastar(const int stops[], int num_stops) {
+    unsigned long long total_expansions = 0, total_generated = 0;
+    float total_runtime = 0;
+    unsigned total_solutions = 0;
+
     struct timeval tstart, tend;
-    unsigned long long min_cost;
-    unsigned long long min_time;
 
-    initialize_parameters();
+    for (int i = 0; i < num_stops - 1; i++) {
+        start = stops[i];      // Nodo inicial del segmento
+        goal = stops[i + 1];   // Nodo final del segmento
 
-    gettimeofday(&tstart, NULL);
+        printf("Processing segment: %d -> %d\n", start, goal);
 
-    //Dijkstra h1
-    if (backward_dijkstra(1))
-        min_cost = start_state->h1;
+        start_state = &graph_node[start];
+        goal_state = &graph_node[goal];
 
-    //Dijkstra h2
-    if (backward_dijkstra(2))
-        min_time = start_state->h2;
-        
-    
-	//BOA*
-    boastar();
+        // Inicializar parámetros y ejecutar BOA* para este segmento
+        initialize_parameters();
 
-		
-    gettimeofday(&tend, NULL);
-    runtime = 1.0 * (tend.tv_sec - tstart.tv_sec) + 1.0 * (tend.tv_usec - tstart.tv_usec) / 1000000.0;
-    //		printf("nsolutions:%d Runtime(ms):%f Generated: %llu statexpanded1:%llu\n", nsolutions, time_astar_first1*1000, stat_generated, stat_expansions);
-    printf("%lld;%lld;%d;%f;%llu;%llu;%lu;%llu\n",
-        start_state->id + 1,
-        goal_state->id + 1,
-        nsolutions,
-        runtime * 1000,
-        stat_generated,
-        stat_expansions,
-        stat_created,
-        stat_percolations);
+        gettimeofday(&tstart, NULL);
+
+        if (backward_dijkstra(1) && backward_dijkstra(2)) {
+            boastar();
+        }
+
+        gettimeofday(&tend, NULL);
+
+        // Calcular tiempo de ejecución para este segmento
+        float runtime = 1.0 * (tend.tv_sec - tstart.tv_sec) +
+                        1.0 * (tend.tv_usec - tstart.tv_usec) / 1000000.0;
+
+        // Acumular métricas globales
+        total_runtime += runtime;
+        total_expansions += stat_expansions;
+        total_generated += stat_generated;
+        total_solutions += nsolutions;
+
+        // Mostrar resultados del segmento
+        printf("Segment results: Runtime %.2f ms, Solutions %d, Expansions %llu, Generated %llu\n",
+               runtime * 1000, nsolutions, stat_expansions, stat_generated);
+    }
+
+    // Mostrar resultados consolidados
+    printf("Total Results:\n");
+    printf("Runtime: %.2f ms\n", total_runtime * 1000);
+    printf("Total Expansions: %llu\n", total_expansions);
+    printf("Total Generated: %llu\n", total_generated);
+    printf("Total Solutions: %u\n", total_solutions);
 }
 
 /*----------------------------------------------------------------------------------*/
-int main() {
-	start = 180833;
-	goal = 83149;
-	
-	read_adjacent_table("NY-road-d.txt");
-	new_graph();
 
-	call_boastar();
+void read_queries(const char *filename, int queries[][4], int *num_queries) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    int start, stop1, stop2, end;
+    *num_queries = 0;
+    while (fscanf(file, "%d %d %d %d", &start, &stop1, &stop2, &end) == 4) {
+        if (*num_queries < MAX_QUERIES) {
+            queries[*num_queries][0] = start;
+            queries[*num_queries][1] = stop1;
+            queries[*num_queries][2] = stop2;
+            queries[*num_queries][3] = end;
+            (*num_queries)++;
+            int stops[] = {start, stop1, stop2, end};
+            int num_stops = sizeof(stops) / sizeof(stops[0]);
+            call_boastar(stops, num_stops);
+        } else {
+            printf("Maximum number of queries reached.\n");
+            break;
+        }
+    }
+
+    fclose(file);
 }
 
+int main() {
+    // Leer el grafo desde el archivo (se mantiene sin cambios)
+    read_adjacent_table("NY-road-d.txt");
+    new_graph();
+
+    // Leer y procesar las consultas desde el archivo
+    int queries[MAX_QUERIES][4];
+    int num_queries;
+    read_queries("NY-queries-2p.txt", queries, &num_queries);
+    
+    return 0;
+}
